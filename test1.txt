@@ -1,1 +1,333 @@
-done
+import mysql.connector
+con=mysql.connector.connect(host="localhost",user= "root",password="swathi2008")
+cur=con.cursor()
+#orgtable
+cur.execute("CREATE DATABASE IF NOT EXISTS hangoutspots;")
+cur.execute("USE hangoutspots;")
+
+# Organisers table
+cur.execute("""
+CREATE TABLE IF NOT EXISTS organiser (
+    id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    phoneno VARCHAR(10),
+    password VARCHAR(255) NOT NULL
+);
+""")
+
+# Customer table
+cur.execute("""
+CREATE TABLE IF NOT EXISTS customer (
+    id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    phoneno VARCHAR(10),
+    password VARCHAR(255) NOT NULL
+);
+""")
+
+# eventtable
+cur.execute("""
+CREATE TABLE IF NOT EXISTS event (
+    eid VARCHAR(3) PRIMARY KEY,
+    organiser_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    date DATE,
+    starttime VARCHAR(8),
+    endtime VARCHAR(8),
+    location VARCHAR(255) NOT NULL,
+    description VARCHAR(500),
+    contact_number VARCHAR(10)
+);
+""")
+#workshoptable
+cur.execute('''create table if not exists workshop (
+    eid VARCHAR(3) PRIMARY KEY,
+    organiser_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    date DATE,
+    starttime VARCHAR(8),
+    endtime VARCHAR(8),
+    location VARCHAR(255) NOT NULL,
+    description VARCHAR(500),
+    contact_number VARCHAR(10)
+    
+);
+
+''')
+#cafetable
+cur.execute('''create table if not exists cafe (
+    eid VARCHAR(3) PRIMARY KEY,
+    organiser_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    date DATE,
+    starttime VARCHAR(8),
+    endtime VARCHAR(8),
+    location VARCHAR(255) NOT NULL,
+    description VARCHAR(500),
+    contact_number VARCHAR(10)
+    
+    
+);
+
+''')
+
+#activitybtable
+cur.execute('''create table if not exists activity (
+    eid VARCHAR(3) PRIMARY KEY,
+    organiser_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    date DATE,
+    starttime VARCHAR(8),
+    endtime VARCHAR(8),
+    location VARCHAR(255) NOT NULL,
+    description VARCHAR(500),
+    contact_number VARCHAR(10)
+    
+);''')
+
+def manage_rec(tble,userid):
+    while True:
+        print("""
+            MENU
+            1. ADD
+            2. UPDATE
+            3. DELETE
+            4. EXIT""")
+        choice = input("Enter choice (1/2/3/4): ")
+        if choice=="1":
+            more = "y"
+            while more.lower() in "y":
+                eid=input("enter id:")
+                try:
+                    cur.execute(f"select * from {tble}")
+                    fe=cur.fetchall()
+                    for i in fe :
+                        if eid ==i[0] :
+                            print("ID already exists")
+                except:
+                    pass
+                name = input("Enter name: ")
+                date = input("Enter date (yyyy/mm/dd): ")
+                starttime = input("Enter start time: ")
+                endtime = input("Enter end time: ")
+                loc = input("Enter location: ")
+                desc = input("Enter description: ")
+                conno = input("Enter contact number: ")
+                while  (len(conno) != 10 or not conno.isdigit()):
+                        print("Invalid contact number")
+                        conno=input("Enter contact number: (should only 10-digit)")
+                else:
+                    cur.execute(f"""
+                    insert into {tble} 
+                    values (%s, %s, %s, %s, %s, %s, %s, %s,%s)
+                    """, (eid,userid, name, date, starttime, endtime, loc, desc, conno))
+                    con.commit()
+                    more = input("Add more records (y/n): ")
+        elif choice=="2":
+            
+            cur.execute(f"select * from {tble}")
+            records = cur.fetchall()
+            more = "y"
+            while more.lower() in "y":
+                eid=input("enter id:")
+                for r in records:
+                    if eid==r[0]:
+                        name = input("Enter name: ")
+                        date = input("Enter date (yyyy/mm/dd): ")
+                        starttime = input("Enter start time: ")
+                        endtime = input("Enter end time: ")
+                        loc = input("Enter location: ")
+                        desc = input("Enter description: ")
+                        conno=input("Enter contact number: (should only 10-digit)")
+                        
+                        while  (len(conno) != 10 or not conno.isdigit()):
+                            print("Invalid contact number")
+                            conno=input("Enter contact number: (should only 10-digit)")
+
+                    
+                        cur.execute(f"""
+                        UPDATE {tble}
+                        SET organiser_id = %s,name = %s,date = %s,starttime = %s,
+                        endtime = %s,location = %s,description = %s,contact_number = %s
+                        WHERE eid = %s
+                        """, (userid,name,date,starttime,
+                        endtime,loc,desc,conno,eid
+                        ))
+                        print("UPDATED SUCCESSFULLY")
+                        con.commit()
+                        more = input("Update more records (y/n): ")
+                        break
+                else:
+                    if eid!=r[0]:
+                        print(f"event id {eid} doesn't exist")
+                        more = input("Do you want to update existing records? (y/n): ")
+                        
+        elif choice=="3":
+            more = "y"
+            while more.lower() in "y":
+                eid=input("enter id:")
+                cur.execute(f"select * from {tble}")
+                fe=cur.fetchall()
+                
+                for i in fe:
+                    if eid==i[0]:
+                        cur.execute(f"DELETE FROM {tble} WHERE eid={eid};")
+                        con.commit()
+                        print("DELETED SUCCESSFULLY")
+                        more = input("Delete more records (y/n): ")
+                        break
+                else:
+                    if eid!=r[0]:
+                        print(f"event id {eid} doesn't exist")
+                        more = input("Do you want to update existing records? (y/n): ")
+                        
+                    
+        elif choice=="4":
+            break
+        else:
+            print("INVALID CHOICE")
+def login_user(tble):
+
+    cur.execute(f"select * FROM {tble};")
+
+    userid=input("enter userid:")
+    
+    rows = cur.fetchall()
+
+    for k in rows:
+        if userid == k[0]:
+            passwd = input("Enter password: ")
+            if passwd == k[3]:
+                print("Login successful")
+                global c, i_d
+                c="true"
+            else:
+                print("Incorrect password")
+            
+        
+            i_d=userid
+            break
+    else:
+        print("User not found")
+def register_user(tble):
+    userid = input("Enter user ID: ")
+    name = input("Enter name: ")
+    phoneno = input("Enter phone number (10 digits only): ") 
+    
+    while  (len(phoneno) != 10 or not phoneno.isdigit()):
+        print("Invalid contact number")
+        phoneno=input("Enter contact number: (should only 10-digit)")
+    else:
+        passwd = input("Enter password: ")
+        cur.execute(
+            f"insert into {tble} (id, name, phoneno, password) values (%s, %s, %s, %s)",
+            (userid, name, phoneno, passwd)   )
+        global c, i_d
+        i_d=userid
+        c="true"
+        con.commit()
+        print("Account created successfully")
+def dis(tble):
+    
+    print("eid", "\t","organiser_id", "\t", "name", "\t", "date", "\t",
+          'starttime', "\t", 'endtime', "\t", 'location', "\t", 'description', "\t" ,"contact_numbe")
+    cur.execute(f"select * from {tble}")
+    rw=cur.fetchall()     
+    for r in rw:
+        print(r[0], "\n", r[1], "\n", r[2], "\t", r[3], "\t",
+          r[4], "\t", r[5], "\t", r[6], "\t", r[7],'\t',r[8])
+
+    ask=input("Filter by location (y/n): ")
+    if ask.lower() in "y":
+        ls=input("Enter location: ")
+        cur.execute(f"SELECT * FROM {tble} WHERE location = %s", (ls,))
+        rws = cur.fetchall()
+        for i in rws:
+             print(i[0], "\t", i[1], "\t", i[2], "\t", i[3], "\t",
+          i[4], "\t", i[5], "\t", i[6], "\t", i[7],'\t',i[8])
+
+
+
+
+
+
+                                    
+c = "false"
+y = input("Enter user type [ORGANISER(o)/CUSTOMER(c)]: ")
+if y.lower() in "o":
+    tble="organiser"
+    o=input("Already logged in (y/n): ")
+    if o.lower() in 'y':
+        login_user(tble)  
+    if o.lower() in "n":
+        register_user(tble)
+    if c.lower() in "true":
+        x="y"
+        while x.lower() in "y":
+            print('''
+            MENU:
+            1.EVENTS
+            2.WORKSHOP
+            3.CAFÉ
+            4.ACIVITY-BASED-SPOTS
+            5.EXIT''')
+            choice=input("Enter opt(1,2,3,4,5):")
+            if choice=="1":
+                
+                t="event"
+                manage_rec(t,i_d)
+            elif choice=="2":
+                
+                t="workshop"
+                manage_rec(t,i_d)
+            elif choice=="3":
+                
+                t="cafe"
+                manage_rec(t,i_d)
+            elif choice=="4":
+                
+                t="activity"
+                manage_rec(t,i_d)
+            elif choice=="5":
+                break
+            else:
+                print("invalid choice")
+if y.lower() in "c":
+    tble="customer"
+    o=input("already log in(y/n):")
+    if o.lower() in 'y':
+        login_user(tble)
+    if o.lower() in "n":
+        register_user(tble)
+    if c.lower() in "true":
+        x="y"
+        while x.lower() in "y":
+            print('''
+            MENU:
+            1.EVENTS
+            2.WORKSHOP
+            3.CAFÉ
+            4.ACIVITY-BASED-SPOTS
+            5.EXIT''')
+            ch=input("Enter opt(1,2,3,4,5):")     
+            if ch=="1":
+                tble="event"
+                dis(tble)
+            elif ch=="2":
+                tble="workshop"
+                dis(tble)
+            elif ch=="3":
+                tble="cafe"
+                dis(tble)
+            elif ch=="4":
+                tble="activity"
+                dis(tble)
+            elif ch=="5":
+                break
+            else:
+                print("invalid choice")
+            
+con.close()
+                    
+                    
+                    
